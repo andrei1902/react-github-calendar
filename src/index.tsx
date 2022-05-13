@@ -10,6 +10,11 @@ import { API_URL, DEFAULT_THEME } from './constants';
 import { ApiErrorResponse, ApiResponse, Year } from './types';
 import { transformData } from './utils';
 
+enum DataProvider {
+	github = 'github',
+	gitlab = 'gitlab'
+}
+
 export interface Props extends Omit<CalendarProps, 'data'> {
   username: string;
   year?: Year;
