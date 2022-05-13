@@ -19,6 +19,7 @@ export interface Props extends Omit<CalendarProps, 'data'> {
   username: string;
   year?: Year;
   transformData?: (data: CalendarData) => CalendarData;
+	provider?: DataProvider;
 }
 
 async function fetchCalendarData(username: string, year: Year): Promise<ApiResponse> {
