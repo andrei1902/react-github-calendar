@@ -10,10 +10,7 @@ import { API_URL, DEFAULT_THEME } from './constants';
 import { ApiErrorResponse, ApiResponse, Year } from './types';
 import { transformData } from './utils';
 
-enum DataProvider {
-	github = 'github',
-	gitlab = 'gitlab'
-}
+type DataProvider = 'github' | 'gitlab';
 
 export interface Props extends Omit<CalendarProps, 'data'> {
   username: string;
@@ -22,9 +19,23 @@ export interface Props extends Omit<CalendarProps, 'data'> {
 	provider?: DataProvider;
 }
 
-async function fetchCalendarData(username: string, year: Year): Promise<ApiResponse> {
-  const response = await fetch(`${API_URL}${username}?y=${year}`);
-  const data: ApiResponse | ApiErrorResponse = await response.json();
+const fetchDataFromProvider = async (username: string, year: Year, provider: DataProvider): Promise<[Response, ApiResponse | ApiErrorResponse]> => {
+	switch (provider) {
+		case 'github': {
+			const response = await fetch(`${API_URL}${username}?y=${year}`);
+			const data: ApiResponse | ApiErrorResponse = await response.json();
+			return [response, data];
+		}
+		case 'gitlab': {
+			const response = await fetch(`https://gitlab.com/users/${username}/calendar.json`);
+			const data: ApiResponse | ApiErrorResponse = await response.json();
+			return [response, data];
+		}
+	}
+}
+
+async function fetchCalendarData(username: string, year: Year, provider: DataProvider): Promise<ApiResponse> {
+	const [response, data] = await fetchDataFromProvider(username, year, provider);
 
   if (!response.ok) {
     throw new Error((data as ApiErrorResponse).error);
@@ -37,7 +48,7 @@ const GitHubCalendar: FunctionComponent<Props> = ({
   username,
   year = 'last',
   transformData: transformDataProp,
-	provider = DataProvider.github,
+	provider = 'github',
   ...props
 }) => {
   const [data, setData] = useState<CalendarData | null>(null);
@@ -52,7 +63,7 @@ const GitHubCalendar: FunctionComponent<Props> = ({
   const fetchData = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchCalendarData(username, year)
+    fetchCalendarData(username, year, provider)
       .then(({ contributions }) => setData(transformDataCallback(contributions)))
       .catch(setError)
       .finally(() => setLoading(false));
