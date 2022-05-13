@@ -37,6 +37,7 @@ const GitHubCalendar: FunctionComponent<Props> = ({
   username,
   year = 'last',
   transformData: transformDataProp,
+	provider = DataProvider.github,
   ...props
 }) => {
   const [data, setData] = useState<CalendarData | null>(null);
